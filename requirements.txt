@@ -1,0 +1,5 @@
+# Executor (dentro da imagem). O coordenador só precisa da biblioteca padrão e do gcloud.
+laspy[lazrs]>=2.5.4
+pyproj>=3.6.0
+py3dtiles>=9.0.0
+google-cloud-storage>=2.16.0

@@ -1,0 +1,6 @@
+.estado
+.git
+.venv
+tests
+docs
+*.laz
