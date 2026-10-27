@@ -7,7 +7,7 @@ que o teste meça o que a aplicação vai rodar.
 |---|---|---|---|---|
 | `copc` | untwine (padrão) | `untwine -i <laz> -o <saida>/pointcloud.copc.laz --temp_dir <tmp>` | `pdal info --summary` lê como `readers.copc` | `app/worker/tasks/pointcloud_copc.py` |
 | `copc` | PDAL (`--conversor-copc pdal`) | `pdal translate <laz> <saida>/pointcloud.copc.laz -w writers.copc` | idem | idem |
-| `3dtiles` | py3dtiles | `py3dtiles convert <laz> --out <saida> --overwrite --pyproj-always-xy --jobs <vCPUs> --verbose` | `tileset.json` legível | `app/worker/tasks/pointcloud_3dtiles.py` |
+| `3dtiles` | py3dtiles | `py3dtiles-serial convert <laz> --out <saida> --overwrite --pyproj-always-xy --jobs <vCPUs> --verbose` | `tileset.json` legível | `app/worker/tasks/pointcloud_3dtiles.py` |
 | `potree` | PotreeConverter 2.1.2 | `PotreeConverter <laz> -o <saida>` | `metadata.json`, `octree.bin`, `hierarchy.bin` | `app/processing/pointcloud/potree.py` |
 
 Antes de converter, o LAZ é validado pelo header (laspy), com os mesmos status do backend. `CORRUPTED`, `EMPTY`,
@@ -36,6 +36,10 @@ os dois nos LAZ reais.
   coordenadas projetadas do LAZ (SIRGAS 2000 / UTM), e não em ECEF (EPSG:4978), que é o que o Cesium espera para
   posicionar no globo. O teste mantém o comando do backend. Para testar a outra opção, crie o plano com
   `--py3dtiles-args="--srs_out 4978"` (com `=`, porque o valor começa com `--`).
+- **O py3dtiles lê o LAZ sem threads.** Com o py3dtiles 12.1.1, o laspy 2.7.0 e o lazrs 0.8.2, o backend
+  padrão do laspy (`LazrsParallel`) trava os workers depois do fork, e a conversão nunca termina (T0, 27/10/2026).
+  O executor chama o `py3dtiles-serial` (`lidarspot/py3dtiles_serial.py`), que é o mesmo `py3dtiles` com o
+  backend `Lazrs`. Vale conferir se o backend-python, com as versões que ele fixa, tem o mesmo problema.
 - **Validação só pelo laspy.** O backend tenta o binding Python do PDAL e cai no laspy quando ele não existe, o
   que acontece na imagem de produção. Aqui é só laspy.
 - **O executor não chama o Node.** Em vez dos callbacks HTTP, o resultado de cada conversão fica no `_SUCESSO`,

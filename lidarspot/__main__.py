@@ -46,7 +46,9 @@ def main():
     pl.add_argument("--formatos", default="copc,3dtiles,potree")
     pl.add_argument("--conversor-copc", choices=["untwine", "pdal"], default="untwine")
     pl.add_argument("--jobs", type=int, help="processos do py3dtiles (padrão: vCPUs da VM)")
-    pl.add_argument("--py3dtiles-args", default="", help='argumentos extras do py3dtiles, ex.: --py3dtiles-args="--srs_out 4978"')
+    pl.add_argument(
+        "--py3dtiles-args", default="", help='argumentos extras do py3dtiles, ex.: --py3dtiles-args="--srs_out 4978"'
+    )
     pl.add_argument("--timeout-h", type=float, default=6)
     pl.add_argument("--maquina", default="n2d-standard-8")
     pl.add_argument("--disco-gb", type=int, help="padrão: calculado pelo maior tile")
@@ -69,7 +71,9 @@ def main():
     rc.add_argument("lote")
     novo("operacoes", c.cmd_operacoes, "salva o histórico de operações das VMs (base das horas cobradas)")
     novo("custo", c.cmd_custo, "horas ligadas e custo de tabela da rodada")
-    novo("relatorio", c.cmd_relatorio, "medições por formato e extrapolação para o inventário")
+    rl = novo("relatorio", c.cmd_relatorio, "medições por formato e extrapolação para o inventário")
+    rl.add_argument("--estima", action="store_true", help="estima horas e custo dos testes T1–T4 com estas medidas")
+    rl.add_argument("--origem", default="gs://amazon-3d-lidar/ENTREGAS", help="inventário usado pela --estima")
 
     lo = novo("local", c.cmd_local, "roda um lote no Docker local (teste T0)")
     lo.add_argument("--lote", default="lote0001")

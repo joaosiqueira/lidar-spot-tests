@@ -45,7 +45,8 @@ def comando(formato: str, origem: Path, saida: Path, tmp: Path, opcoes: dict) ->
             return ["untwine", "-i", str(origem), "-o", str(destino), "--temp_dir", str(tmp)]
         return ["pdal", "translate", str(origem), str(destino), "-w", "writers.copc"]
     if formato == "3dtiles":
-        cmd = ["py3dtiles", "convert", str(origem), "--out", str(saida), "--overwrite", "--pyproj-always-xy",
+        # py3dtiles-serial: o py3dtiles com o LAZ lido sem threads (lidarspot/py3dtiles_serial.py)
+        cmd = ["py3dtiles-serial", "convert", str(origem), "--out", str(saida), "--overwrite", "--pyproj-always-xy",
                "--jobs", str(opcoes.get("jobs") or os.cpu_count() or 2), "--verbose"]
         return cmd + [str(a) for a in opcoes.get("py3dtiles_args", [])]
     if formato == "potree":

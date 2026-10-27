@@ -20,6 +20,7 @@ import time
 from pathlib import Path
 
 from lidarspot import custo as cst
+from lidarspot import estimativa as est
 from lidarspot import layout
 from lidarspot import plano as pl
 
@@ -69,8 +70,8 @@ def lista(destino: str, padrao: str) -> list[str]:
         r = sh(["gcloud", "storage", "ls", _url(destino, padrao)], check=False)
         base = destino.rstrip("/") + "/"
         return [u[len(base):] for u in r.stdout.split() if u.startswith(base)]
-    raiz = Path(destino)
-    return sorted(str(p.relative_to(raiz)) for p in raiz.glob(padrao.replace("**", "*")))
+    raiz = Path(destino)   # o glob do pathlib entende `**` (qualquer profundidade) como o gcloud
+    return sorted(str(p.relative_to(raiz)) for p in raiz.glob(padrao) if p.is_file())
 
 
 def le_jsons(destino: str, padrao: str) -> list[dict]:
@@ -417,7 +418,8 @@ def cmd_custo(a):
 
 def cmd_relatorio(a):
     """Junta os _SUCESSO e _FALHA da rodada: tempo, RAM, disco e tamanho de saída por formato, e a extrapolação
-    para o inventário inteiro. Grava .estado/<rodada>/conversoes.csv e relatorio.md."""
+    para o inventário inteiro. Com --estima, também as horas e o custo previstos dos testes T1–T4. Grava
+    .estado/<rodada>/conversoes.csv e relatorio.md."""
     import csv
     import statistics as st
 
@@ -472,6 +474,10 @@ def cmd_relatorio(a):
             fator = inv_gib / (plano["bytes"] / 2**30)
             out.append(f"Extrapolado pelo volume de LAZ para o inventário: ~{t['horas_ligada'] * fator:.0f} VM·h, "
                        f"~US$ {t['custo_total_usd'] * fator:.0f} (sem transferência nem armazenamento).")
+    if a.estima and sucessos:
+        inventario = lista_laz([f"{a.origem.rstrip('/')}/*/1_Nuvem_de_Pontos/*.laz"])
+        tx = est.taxas(sucessos)
+        out += est.tabela([est.estima(t, inventario, tx) for t in est.TESTES], tx)
     if falhas:
         out += ["", "## Falhas", ""] + [f"- {f['tile']['id']} {f['formato']}: {f['erro'][:300]}" for f in falhas]
     if linhas:

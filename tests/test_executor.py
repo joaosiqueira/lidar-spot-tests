@@ -96,7 +96,7 @@ class FalsoConversor:
             saida = Path(cmd[cmd.index("-o") + 1]) if "-o" in cmd else Path(cmd[cmd.index("--out") + 1])
             if cmd[0] == "untwine":
                 saida.write_bytes(b"copc")
-            elif cmd[0] == "py3dtiles":
+            elif cmd[0] == "py3dtiles-serial":
                 (saida / "tileset.json").write_text("{}")
                 (saida / "r.pnts").write_bytes(b"p")
             else:
@@ -149,7 +149,7 @@ def test_retomada_pula_formatos_com_sucesso(tmp_path, monkeypatch):
     dst, d = _lote(tmp_path, n=1)
     d.grava_texto("r/tiles/fonte/t0/copc/_SUCESSO", "{}")
     executor.roda_lote(dst, "r", "lote0001", tmp_path / "work")
-    assert [c[0] for c in conv.chamadas] == ["py3dtiles", "PotreeConverter"]
+    assert [c[0] for c in conv.chamadas] == ["py3dtiles-serial", "PotreeConverter"]
 
 
 def test_falha_de_conversao_nao_derruba_o_lote(tmp_path, monkeypatch):

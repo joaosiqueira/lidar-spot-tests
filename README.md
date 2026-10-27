@@ -51,7 +51,7 @@ Regra herdada do TerraHidro: **nada no bucket é apagado, movido ou sobrescrito*
 ## Uso rápido
 
 ```bash
-D=gs://BUCKET_DE_TESTE/lidar-spot/          # destino (bucket em us-central1)
+D=gs://mapbiomas-lidar-spot-tests/          # destino (bucket em us-central1)
 
 python -m lidarspot imagem --destino $D      # constrói e envia a imagem (uma vez por versão)
 python -m lidarspot pacote --destino $D      # envia o código das VMs (a cada mudança)

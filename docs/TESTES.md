@@ -7,7 +7,7 @@ Os testes vão do mais barato ao mais caro. Cada um tem uma pergunta e um crité
 um nome novo, porque nada no destino é sobrescrito. Nos exemplos:
 
 ```bash
-D=gs://BUCKET_DE_TESTE/lidar-spot/
+D=gs://mapbiomas-lidar-spot-tests/
 ```
 
 ## T0: imagem e conversores, no Docker local
@@ -18,8 +18,11 @@ D=gs://BUCKET_DE_TESTE/lidar-spot/
 docker build --platform linux/amd64 -t lidar-spot:latest .
 python -m lidarspot plano --destino ./saida-t0 --rodada t0 --entregas ENTREGA_02 --amostra 1 --min-mib 20 --lotes 1
 python -m lidarspot local --destino ./saida-t0 --rodada t0
-python -m lidarspot relatorio --destino ./saida-t0 --rodada t0
+python -m lidarspot relatorio --destino ./saida-t0 --rodada t0 --estima
 ```
+
+Com `--estima`, o relatório inclui as horas e o custo previstos de T1–T4 com as taxas medidas (hipóteses em
+`lidarspot/estimativa.py`).
 
 O destino é uma pasta local: nada é gravado no GCP. O LAZ é lido do bucket com as credenciais do `gcloud` do
 operador (`gcloud auth application-default login`). Num Mac com Apple Silicon, a imagem roda emulada (amd64) e

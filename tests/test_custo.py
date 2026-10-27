@@ -1,4 +1,5 @@
 import datetime as dt
+import json
 
 import pytest
 
@@ -34,3 +35,12 @@ def test_nome_vm_valido_no_gce():
     n = coordena.nome_vm("T1_Uma.VM", "lote0001")
     assert n == "ls-t1-uma-vm-lote0001"
     assert len(coordena.nome_vm("x" * 80, "lote0001")) <= 63
+
+
+def test_lista_local_desce_pelas_pastas(tmp_path):
+    for fmt in ("copc", "potree"):
+        (tmp_path / "r/tiles/E/T1" / fmt).mkdir(parents=True)
+        (tmp_path / "r/tiles/E/T1" / fmt / "_SUCESSO").write_text(json.dumps({"formato": fmt}))
+    assert coordena.lista(str(tmp_path), "r/tiles/**/_SUCESSO") == ["r/tiles/E/T1/copc/_SUCESSO",
+                                                                    "r/tiles/E/T1/potree/_SUCESSO"]
+    assert [j["formato"] for j in coordena.le_jsons(str(tmp_path), "r/tiles/**/_SUCESSO")] == ["copc", "potree"]
