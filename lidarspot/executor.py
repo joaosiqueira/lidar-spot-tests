@@ -23,6 +23,7 @@ import shutil
 import subprocess
 import time
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from lidarspot import bucket, formatos, layout
@@ -30,6 +31,7 @@ from lidarspot.recursos import Vigia, livre_gib, maquina
 from lidarspot.validacao import FATAIS, valida
 
 log = logging.getLogger("lidarspot")
+ENVIO_THREADS = 32   # objetos enviados ao mesmo tempo
 
 
 def agora() -> str:
@@ -71,14 +73,17 @@ def roda_comando(cmd: list[str], arq_log: Path, timeout_s: int) -> dict:
 
 
 def envia_pasta(dst, raiz: Path, prefixo: str) -> dict:
-    n, total, ja = 0, 0, 0
-    for p in sorted(raiz.rglob("*")):
-        if not p.is_file():
-            continue
-        r = dst.envia(p, prefixo + p.relative_to(raiz).as_posix(),
-                      content_type=formatos.content_type(p), cache_control=formatos.cache_control(p))
-        n, total, ja = n + 1, total + r.bytes, ja + r.ja_existia
-    return {"objetos": n, "bytes": total, "ja_existiam": ja}
+    """Envia em paralelo: o 3D Tiles gera milhares de arquivos pequenos, e um por vez o envio levava 6× a
+    conversão (T1, 27/10/2026). Cada objeto continua com if_generation_match=0; o primeiro erro interrompe."""
+    arquivos = sorted(p for p in raiz.rglob("*") if p.is_file())
+
+    def um(p: Path):
+        return dst.envia(p, prefixo + p.relative_to(raiz).as_posix(),
+                         content_type=formatos.content_type(p), cache_control=formatos.cache_control(p))
+
+    with ThreadPoolExecutor(ENVIO_THREADS) as ex:
+        rs = list(ex.map(um, arquivos))
+    return {"objetos": len(rs), "bytes": sum(r.bytes for r in rs), "ja_existiam": sum(r.ja_existia for r in rs)}
 
 
 def tamanho_pasta(p: Path) -> int:

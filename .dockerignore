@@ -1,6 +1,9 @@
-.estado
-.git
-.venv
-tests
-docs
+.git/
+.venv/
+.estado/
+saida-*/
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
 *.laz
+*.las

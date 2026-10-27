@@ -28,7 +28,15 @@ Corrigido no T0:
   executor chama o `py3dtiles-serial` (`lidarspot/py3dtiles_serial.py`); veja `docs/CONVERSOES.md`.
 - **`coordena.lista` com destino local:** não descia pelas pastas com `**`, e o relatório saía vazio.
 
-**Próximo passo: T1**, que depende da confirmação do João para criar VMs.
+**T1 aprovado** (27/10/2026): 3 tiles da ENTREGA_02 (1,0 GiB) numa n2d-standard-8 spot, 9 conversões, preparo de
+58 s, 0,52 h de VM e US$ 0,08 de tabela. O envio do 3D Tiles (cerca de 6 mil objetos por tile, um por vez) levou
+6× a conversão. Corrigido depois do T1, ainda não testado numa VM:
+- `executor.envia_pasta` envia em paralelo (`ENVIO_THREADS`);
+- o `coordena` só encerra a rodada depois de apagar as VMs que ainda estavam desligando (no T1 a VM ficou
+  `TERMINATED` e foi apagada com um `coordena --uma-vez`).
+
+**Próximo passo:** repetir o T1 como `t1b` para medir o envio em paralelo, e depois o T2. Confirme com o João
+antes de criar VMs.
 
 **Destino de T1–T4: `gs://mapbiomas-lidar-spot-tests/`** (projeto `mapbiomas`, us-central1, criado em
 27/10/2026). Tem os rótulos `projeto=amazonia3d` e `uso=lidar-spot-tests`, acesso uniforme e público bloqueado.

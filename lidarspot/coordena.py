@@ -286,7 +286,7 @@ def cmd_coordena(a):
     while True:
         fim, falhas = situacao(plano)
         vs = vms(plano)
-        estado = {"concluidos": [], "rodando": [], "religados": [], "falhas": [], "esperando": []}
+        estado = {"concluidos": [], "desligando": [], "rodando": [], "religados": [], "falhas": [], "esperando": []}
         ativos = sum(1 for k, v in vs.items() if k in alvo and k not in fim)
         for lote in alvo:
             v = vs.get(lote)
@@ -295,6 +295,8 @@ def cmd_coordena(a):
                 if v and v["status"] in ("TERMINATED", "STOPPED"):
                     apaga(plano, v)
                     log(f"{lote}: concluído, VM apagada")
+                elif v:   # o _FIM chega antes de a VM terminar de desligar: apaga no próximo ciclo
+                    estado["desligando"].append(lote)
                 continue
             if v is None:
                 if ativos < a.max_vms and cria(plano, lote, infra):
@@ -315,8 +317,8 @@ def cmd_coordena(a):
         estado["quando"] = dt.datetime.now().isoformat(timespec="seconds")
         (d / "coordenador.json").write_text(json.dumps(estado, indent=1))
         log(f"concluídos {len(estado['concluidos'])}/{len(alvo)}; rodando {len(estado['rodando'])}; "
-            f"esperando {len(estado['esperando'])}; falhas {estado['falhas']}")
-        if len(estado["concluidos"]) == len(alvo):
+            f"esperando {len(estado['esperando'])}; desligando {len(estado['desligando'])}; falhas {estado['falhas']}")
+        if len(estado["concluidos"]) == len(alvo) and not estado["desligando"]:
             log("rodada concluída")
             return
         if estado["falhas"] and not estado["rodando"] and not a.segue:
