@@ -7,3 +7,5 @@ saida-*/
 .ruff_cache/
 *.laz
 *.las
+tests/
+docs/
